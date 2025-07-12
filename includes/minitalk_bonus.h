@@ -1,21 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_lstadd_front_bonus.c                            :+:      :+:    :+:   */
+/*   minitalk_bonus.h                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/01 18:26:16 by cvizcain          #+#    #+#             */
-/*   Updated: 2024/04/13 13:49:14 by cvizcain         ###   ########.fr       */
+/*   Created: 2025/07/13 01:28:55 by cvizcain          #+#    #+#             */
+/*   Updated: 2025/07/13 01:51:45 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#ifndef MINITALK_BONUS_H
+# define MINITALK_BONUS_H
 
-void	ft_lstadd_front(t_list **lst, t_list *new)
+# include <unistd.h>
+# include <stdlib.h>
+# include <signal.h>
+# include "../ft_printf/ft_printf.h"
+
+typedef struct s_byte
 {
-	if (!new || !lst)
-		return ;
-	new->next = (*lst);
-	(*lst) = new;
-}
+	unsigned int	bit_num;
+	unsigned char	byte;
+}				t_byte;
+
+int		ft_send_byte(unsigned char byte, int pid);
+void	sigusr_handler(int sig, siginfo_t *info, void *ucontext);
+void	sig_handler_client(int sig);
+
+#endif

@@ -1,64 +1,50 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.c                                           :+:      :+:    :+:   */
+/*   server_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/12 17:54:40 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/12 23:36:00 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/13 01:47:18 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/minitalk.h"
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "../includes/minitalk_bonus.h"
 
-void handler(int signalnum, siginfo_t *info, void *context)
+int	main(void)
 {
-	(void)info;
-	static int	pos;
-	static char	xar;
-	static int	state = 0;
-	(void)context; // evitamos warning si no usamos
+	struct sigaction	action;
 
-	state = 1;
-	if (signalnum == SIGUSR1)
-		xar |= (1 << pos);  // bit a 1
-	// SIGUSR2: no cambia el bit → queda en 0
-
-	pos++;
-	if (pos == 8)
+	ft_printf("PID: %d\n", getpid());
+	action.sa_flags = SA_SIGINFO;
+	action.sa_sigaction = sigusr_handler;
+	if (sigaction(SIGUSR1, &action, NULL) == -1)
+		(write(2, "Signal error.\n", 14), exit (-1));
+	if (sigaction(SIGUSR2, &action, NULL) == -1)
+		(write(2, "signal error.\n", 14), exit (-1));
+	while (1)
 	{
-		write(1, &xar, 1); // imprime el char recibido
-		pos = 0;
-		xar = 0;
+		usleep(500);
 	}
-
-	// Opcional: ACK al cliente
-	kill(info->si_pid, SIGUSR1); // enviar señal de vuelta si quieres sincronización
-	state = 0;
 }
 
-
-int main()
+void	sigusr_handler(int sig, siginfo_t *info, void *ucontext)
 {
-	struct sigaction sa;
+	static unsigned char	byte;
+	static unsigned int		bit_num;
 
-
-	printf("Mandatory Server is running - PID: %d\n", getpid());
-
-	sa.sa_sigaction = handler;        // usa el handler con 3 argumentos
-	sigemptyset(&sa.sa_mask);         // no bloqueamos otras señales durante el handler
-	sa.sa_flags = SA_SIGINFO;         // necesario para recibir info como el PID del cliente
-
-	sigaction(SIGUSR1, &sa, NULL);    // registrar SIGUSR1
-	sigaction(SIGUSR2, &sa, NULL);    // registrar SIGUSR2
-
-	while (1)
-		pause();  // espera señales
-
-	return (0);
+	(void) ucontext;
+	byte = byte << 1;
+	if (sig == SIGUSR2)
+		byte |= 1;
+	bit_num++;
+	if (kill(info->si_pid, SIGUSR2) == -1)
+		(ft_printf("Error sending signal to client.\n"), exit (-1));
+	if (bit_num == 8)
+	{
+		ft_printf("%c", byte);
+		byte = 0;
+		bit_num = 0;
+	}
 }

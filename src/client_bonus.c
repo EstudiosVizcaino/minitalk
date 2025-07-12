@@ -1,59 +1,91 @@
-#include "../includes/minitalk.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   client_bonus.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/07/13 01:29:15 by cvizcain          #+#    #+#             */
+/*   Updated: 2025/07/13 01:51:09 by cvizcain         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-static sig_atomic_t g_ack_received = 0;
+#include "../includes/minitalk_bonus.h"
 
-void ack_handler(int sig)
+static int	g_sig_counter;
+
+static int	ft_atoi(const char *str)
 {
-	(void)sig;
-	g_ack_received = 1;
-}
+	int	sign;
+	int	nbr;
 
-
-void wait_for_ack(void)
-{
-	while (!g_ack_received)
-		pause();  // espera activamente
-	g_ack_received = 0;
-}
-void	xartosignal(char xar, int pid)
-{
-	int	bit = 0;
-
-	while (bit < 8)
+	sign = 1;
+	nbr = 0;
+	while (*str == ' ' || (*str >= 9 && *str <= 13))
+		str++;
+	if (*str == '-')
 	{
-		if ((xar >> bit) & 1)
-			kill(pid, SIGUSR1);  // bit = 1
-		else
-			kill(pid, SIGUSR2);  // bit = 0
-		wait_for_ack();          // espera confirmación
-		bit++;
+		sign = -1;
+		str++;
 	}
+	else if (*str == '+')
+		str++;
+	while (*str >= '0' && *str <= '9')
+	{
+		nbr = nbr * 10 + *str - 48;
+		str++;
+	}
+	return (nbr * sign);
 }
 
 int	main(int argc, char **argv)
 {
-	int		i;
-	int		pid;
-	char	*str;
-	struct sigaction sa_ack;
+	struct sigaction	action;
 
-	sa_ack.sa_handler = ack_handler;
-	sigemptyset(&sa_ack.sa_mask);
-	sa_ack.sa_flags = 0;
-	sigaction(SIGUSR1, &sa_ack, NULL);
+	action.sa_handler = sig_handler_client;
 	if (argc != 3)
+		return (ft_printf("Usage: ./client PID MESSAGE\n"), 0);
+	if (sigaction(SIGUSR2, &action, NULL) == -1)
+		(write(2, "Error receiving signal.\n", 14), exit (-1));
+	while (*argv[2])
 	{
-		printf("Client must have a PID and a msg!\n");
-		return (0);
+		if (ft_send_byte(*argv[2], ft_atoi(argv[1])) == -1)
+			(write (2, "Error sending signal.\n", 22), exit (-1));
+		argv[2]++;
+		usleep(500);
 	}
-	pid = ft_atoi(*(argv + 1));
-	str = *(argv + 2);
-	printf("Mandatory Client:  PID: %d, MSG: %s\n", pid, str);
-	i = 0;
-	while (*(str + i))
+	if (ft_send_byte('\n', ft_atoi(argv[1])) == -1)
+		(write (2, "Error sending signal.\n", 22), exit (-1));
+	ft_printf("Received %d signals from server corresponding to \
+%d bytes.\n", g_sig_counter, g_sig_counter / 8);
+}
+
+void	sig_handler_client(int sig)
+{
+	if (sig)
 	{
-		xartosignal(*(str + i), pid);
-		i++;
+		g_sig_counter++;
+		usleep(100);
 	}
-	return (0);
+	return ;
+}
+
+int	ft_send_byte(unsigned char byte, int pid)
+{
+	int	error;
+	int	bit_count;
+
+	error = 0;
+	bit_count = 0;
+	while (!error && bit_count < 8)
+	{
+		if ((byte & 0b10000000) == 0b10000000)
+			error = kill(pid, SIGUSR2);
+		else
+			error = kill(pid, SIGUSR1);
+		byte = byte << 1;
+		bit_count++;
+		usleep (500);
+	}
+	return (error);
 }
