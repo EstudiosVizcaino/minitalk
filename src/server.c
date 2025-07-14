@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/12 17:54:40 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/12 23:51:18 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/14 19:25:27 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,37 +16,59 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+static volatile pid_t	g_client_pid = 0;
 
-
-void	sigusr_handler(int sig)
+static void	handle_completed_byte(unsigned char *byte, int *bit_index)
 {
-	static unsigned char	byte;
-	static unsigned int		bit_num;
-
-	byte = byte << 1;
-	if (sig == SIGUSR2)
-		byte |= 1;
-	bit_num++;
-	if (bit_num == 8)
+	if (*byte == '\0')
 	{
-		printf("%c", byte);
-		byte = 0;
-		bit_num = 0;
+		ft_printf("\n");
+		kill(g_client_pid, SIGUSR1);
+		g_client_pid = 0;
 	}
+	else
+	{
+		ft_printf("%c", *byte);
+	}
+	*byte = 0;
+	*bit_index = 0;
+}
+
+void	sig_handler(int sig, siginfo_t *info, void *ucontext)
+{
+	static unsigned char	current_char = 0;
+	static int				bit_index = 0;
+
+	(void) ucontext;
+	if (g_client_pid == 0)
+		g_client_pid = info->si_pid;
+	else if (info->si_pid != g_client_pid)
+		return ;
+	current_char = (current_char << 1) | (sig == SIGUSR2);
+	bit_index++;
+	if (bit_index == 8)
+		handle_completed_byte(&current_char, &bit_index);
+	if (g_client_pid)
+		kill(g_client_pid, SIGUSR1);
 }
 
 int	main(void)
 {
-	struct sigaction	action;
+	struct sigaction	sa;
 
-	printf("PID: %d\n", getpid());
-	action.sa_handler = sigusr_handler;
-	if (sigaction(SIGUSR1, &action, NULL) == -1)
-		(write(2, "Signal error.\n", 14), exit (-1));
-	if (sigaction(SIGUSR2, &action, NULL) == -1)
-		(write(2, "signal error.\n", 14), exit (-1));
-	while (1)
+	ft_printf("Server PID: %d\n", getpid());
+	sigemptyset(&sa.sa_mask);
+	sigaddset(&sa.sa_mask, SIGUSR1);
+	sigaddset(&sa.sa_mask, SIGUSR2);
+	sa.sa_sigaction = sig_handler;
+	sa.sa_flags = SA_SIGINFO;
+	if (sigaction(SIGUSR1, &sa, NULL) == -1
+		|| sigaction(SIGUSR2, &sa, NULL) == -1)
 	{
-		pause();
+		ft_printf("Signal registration error.\n");
+		exit(1);
 	}
+	while (1)
+		pause();
+	return (0);
 }

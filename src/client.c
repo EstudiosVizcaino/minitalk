@@ -6,11 +6,13 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:20 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/13 01:51:17 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/14 19:10:38 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minitalk.h"
+
+static volatile sig_atomic_t	g_ack_received = 1;
 
 static int	ft_atoi(const char *str)
 {
@@ -36,38 +38,46 @@ static int	ft_atoi(const char *str)
 	return (nbr * sign);
 }
 
-int	ft_send_byte(unsigned char byte, int pid)
+void	ack_handler(int sig)
 {
-	int	error;
-	int	bit_count;
+	(void)sig;
+	g_ack_received = 1;
+}
 
-	error = 0;
-	bit_count = 0;
-	while (!error && bit_count < 8)
+void	ft_send_byte(unsigned char byte, int pid)
+{
+	int	i;
+
+	i = 8;
+	while (i--)
 	{
-		if ((byte & 0b10000000) == 0b10000000)
-			error = kill(pid, SIGUSR2);
+		while (!g_ack_received)
+			usleep(50);
+		g_ack_received = 0;
+		if ((byte >> i) & 1)
+			kill(pid, SIGUSR2);
 		else
-			error = kill(pid, SIGUSR1);
-		byte = byte << 1;
-		bit_count++;
-		usleep(500);
+			kill(pid, SIGUSR1);
 	}
-	return (error);
 }
 
 int	main(int argc, char **argv)
 {
-	if (argc != 3)
-		return (0);
-	while (*argv[2])
-	{
-		if (ft_send_byte(*argv[2], ft_atoi(argv[1])) == -1)
-			(write (2, "Error sending signal.\n", 22), exit (-1));
-		argv[2]++;
-		usleep(500);
-	}
-	if (ft_send_byte('\n', ft_atoi(argv[1])) == -1)
-		(exit (-1));
-}
+	int		pid;
+	char	*message;
 
+	if (argc != 3)
+		return (ft_printf("Usage: ./client [PID] [MESSAGE]\n"), 1);
+	signal(SIGUSR1, ack_handler);
+	pid = ft_atoi(argv[1]);
+	message = argv[2];
+	while (*message)
+	{
+		ft_send_byte(*message, pid);
+		message++;
+	}
+	ft_send_byte('\0', pid);
+	while (!g_ack_received)
+		usleep(50);
+	return (0);
+}
