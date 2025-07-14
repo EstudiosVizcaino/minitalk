@@ -6,13 +6,13 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:15 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/13 01:51:09 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/14 19:29:07 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/minitalk_bonus.h"
+#include "../includes/minitalk.h"
 
-static int	g_sig_counter;
+static t_client_state	g_client;
 
 static int	ft_atoi(const char *str)
 {
@@ -38,39 +38,16 @@ static int	ft_atoi(const char *str)
 	return (nbr * sign);
 }
 
-int	main(int argc, char **argv)
-{
-	struct sigaction	action;
-
-	action.sa_handler = sig_handler_client;
-	if (argc != 3)
-		return (ft_printf("Usage: ./client PID MESSAGE\n"), 0);
-	if (sigaction(SIGUSR2, &action, NULL) == -1)
-		(write(2, "Error receiving signal.\n", 14), exit (-1));
-	while (*argv[2])
-	{
-		if (ft_send_byte(*argv[2], ft_atoi(argv[1])) == -1)
-			(write (2, "Error sending signal.\n", 22), exit (-1));
-		argv[2]++;
-		usleep(500);
-	}
-	if (ft_send_byte('\n', ft_atoi(argv[1])) == -1)
-		(write (2, "Error sending signal.\n", 22), exit (-1));
-	ft_printf("Received %d signals from server corresponding to \
-%d bytes.\n", g_sig_counter, g_sig_counter / 8);
-}
-
 void	sig_handler_client(int sig)
 {
-	if (sig)
+	if (sig == SIGUSR2)
 	{
-		g_sig_counter++;
-		usleep(100);
+		g_client.sig_counter++;
+		g_client.ack_received = 1;
 	}
-	return ;
 }
 
-int	ft_send_byte(unsigned char byte, int pid)
+static int	ft_send_byte(unsigned char byte, int pid)
 {
 	int	error;
 	int	bit_count;
@@ -79,13 +56,40 @@ int	ft_send_byte(unsigned char byte, int pid)
 	bit_count = 0;
 	while (!error && bit_count < 8)
 	{
+		g_client.ack_received = 0;
 		if ((byte & 0b10000000) == 0b10000000)
 			error = kill(pid, SIGUSR2);
 		else
 			error = kill(pid, SIGUSR1);
 		byte = byte << 1;
 		bit_count++;
-		usleep (500);
+		while (!g_client.ack_received)
+			usleep(100);
 	}
 	return (error);
+}
+
+int	main(int argc, char **argv)
+{
+	struct sigaction	action;
+
+	g_client.sig_counter = 0;
+	g_client.ack_received = 0;
+	action.sa_handler = sig_handler_client;
+	action.sa_flags = 0;
+	sigemptyset(&action.sa_mask);
+	if (argc != 3)
+		return (ft_printf("Usage: ./client_bonus PID MESSAGE\n"), 0);
+	if (sigaction(SIGUSR2, &action, NULL) == -1)
+		(write(2, "Error receiving signal.\n", 14), exit (-1));
+	while (*argv[2])
+	{
+		if (ft_send_byte(*argv[2], ft_atoi(argv[1])) == -1)
+			(write (2, "Error sending signal.\n", 22), exit (-1));
+		argv[2]++;
+	}
+	if (ft_send_byte('\0', ft_atoi(argv[1])) == -1)
+		(write (2, "Error sending signal.\n", 22), exit (-1));
+	ft_printf("Received %d signals from server corresponding to %d bytes.\n",
+		g_client.sig_counter, g_client.sig_counter / 8);
 }
