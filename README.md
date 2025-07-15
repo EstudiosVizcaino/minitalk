@@ -40,7 +40,7 @@ Make sure you have a C compiler (like `gcc`) and `make` installed on your system
 
 1.  Clone the repo
     ```sh
-    git clone https://github.com/estudiosvizcaino/minitalk.git
+    git clone https://github.com/EstudiosVizcaino/minitalk.git
     ```
 2.  Navigate to the project directory
     ```sh
