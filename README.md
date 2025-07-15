@@ -1,6 +1,6 @@
 # Minitalk
 
-![C](https://img.shields.io/badge/Language-C-blue.svg)![OS](https://img.shields.io/badge/OS-Linux%20%7C%20macOS-lightgrey.svg)!(https://img.shields.io/badge/42%20Project-Minitalk-black.svg)
+![C](https://img.shields.io/badge/Language-C-blue.svg)![OS](https://img.shields.io/badge/OS-Linux%20%7C%20macOS-lightgrey.svg)![](https://img.shields.io/badge/42%20Project-Minitalk-black.svg)
 
 **Minitalk is a project from the 42 coding school that showcases a fundamental aspect of Unix programming: Inter-Process Communication (IPC). The challenge is to create a client-server program that communicates a string of text using only two custom signals: `SIGUSR1` and `SIGUSR2`.**
 
