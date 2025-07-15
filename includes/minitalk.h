@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:02 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 19:08:24 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 23:27:30 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,23 +19,28 @@
 # include <stdlib.h>
 # include "../ft_printf/ft_printf.h"
 
-// Define signals for clarity, making the code's intent self-documenting.
+/// Signal representing a binary 0 bit from client to server.
 # define SIGNAL_BIT_0 SIGUSR1
+
+/// Signal representing a binary 1 bit from client to server.
 # define SIGNAL_BIT_1 SIGUSR2
 
-// Define acknowledgment signals for the bonus part.
+/// Signal used by the server to acknowledge receipt of a bit.
 # define SIGNAL_ACK_BIT SIGUSR1
+
+/// Signal used by the server to acknowledge full message receipt.
 # define SIGNAL_ACK_MSG SIGUSR2
 
-// Using a macro for the number of bits in a byte is good practice.
+/// Number of bits in a byte (8 bits).
 # define BITS_IN_BYTE 8
 
 /**
  * @struct t_server_state
- * @brief  Holds the persistent state of the bonus server.
- * @var    current_char The character currently being reconstructed from bits.
- * @var    bit_index    The count of bits received for the current character.
- * @var    client_pid   The PID of the client currently sending a message.
+ * @brief  Stores the server's progress during message reconstruction.
+ * 
+ * This structure is required for storing persistent data across multiple
+ * signal handler calls. It stores the partial character being built,
+ * the number of bits received so far, and the PID of the client.
  */
 typedef struct s_server_state
 {
