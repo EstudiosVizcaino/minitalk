@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:02 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 12:47:18 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 17:39:00 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,5 +24,7 @@ typedef struct s_client_state
 	int						sig_counter;
 	volatile sig_atomic_t	ack_received;
 }	t_client_state;
+
+
 
 #endif
