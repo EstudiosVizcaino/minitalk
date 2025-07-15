@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:02 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/14 19:28:59 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 12:47:18 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 # include <unistd.h>
 # include <signal.h>
 # include <sys/types.h>
-# include <stdio.h>
 # include <stdlib.h>
 # include "../ft_printf/ft_printf.h"
 
