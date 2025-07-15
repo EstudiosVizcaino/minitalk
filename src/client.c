@@ -6,12 +6,13 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:20 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 20:59:08 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 23:09:09 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minitalk.h"
 
+/// Global flag set by the server to acknowledge reception of each bit.
 static volatile sig_atomic_t	g_server_ack = 1;
 
 static int	ft_atoi(const char *str)
@@ -36,12 +37,12 @@ static int	ft_atoi(const char *str)
 }
 
 /**
- * @brief Handler for the server's bit-by-bit acknowledgment.
- * @param sig The signal number received (unused).
+ * @brief 		Signal Handler for the server's bit-by-bit acknowledgment.
+ * @param sig 	Signal number received (unused).
  *
- * This handler is crucial for synchronization. It sets a global flag,
+ * This handler is crucial for synchronization. Sets a global flag,
  * signaling that the server has processed the last bit and the client
- * can safely send the next one.
+ * can safely send the next one, avoiding flooding.
  */
 void	ack_handler(int sig)
 {
@@ -50,9 +51,9 @@ void	ack_handler(int sig)
 }
 
 /**
- * @brief Sends one byte to the server, waiting for an ack for each bit.
- * @param byte The byte to send.
- * @param pid The server's Process ID.
+ * @brief 		Sends one byte to the server, waiting for an ack for each bit.
+ * @param byte 	Byte to send.
+ * @param pid	Process ID of the server.
  *
  * This function implements a robust, synchronized protocol. It sends one
  * bit and then waits for the server's acknowledgment before proceeding.
@@ -88,9 +89,11 @@ void	ft_send_byte(unsigned char byte, int pid)
 /**
  * @brief The main function for the client program.
  *
- * It validates arguments, sets up the signal handler, and sends the
- * message from the command line to the specified server PID, character
- * by character, followed by a null terminator.
+ * Validates input arguments, sets up the signal handler, and sends
+ * the message to the server character by character, ending with a null
+ * terminator (`'\0'`) to mark the end of the transmission.
+ *
+ * @return 0 on success, 1 on usage error.
  */
 int	main(int argc, char **argv)
 {
