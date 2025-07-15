@@ -6,14 +6,13 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:15 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 20:59:31 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 23:20:05 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minitalk.h"
 
-// This global is justified as it's modified by the bit_ack_handler,
-// which is necessary for the robust two-way communication protocol.
+/// Global flag used to synchronize bit-by-bit communication with the server.
 static volatile sig_atomic_t	g_server_ack = 0;
 
 static int	ft_atoi(const char *str)
@@ -38,11 +37,12 @@ static int	ft_atoi(const char *str)
 }
 
 /**
- * @brief Handler for the final message acknowledgment from the server.
- * @param sig The signal number received (unused).
+ * @brief Signal handler for final message acknowledgment from the server.
+ * @param sig Signal received (unused).
  *
- * This is a bonus feature. Upon receiving this signal, the client
- * knows the entire message was delivered and can exit successfully.
+ * This is a bonus feature. 
+ * Receives a signal when the server confirms the full message was received.
+ * The client prints a confirmation and exits cleanly.
  */
 void	message_ack_handler(int sig)
 {
@@ -52,12 +52,11 @@ void	message_ack_handler(int sig)
 }
 
 /**
- * @brief Handler for the server's bit-by-bit acknowledgment.
- * @param sig The signal number received (unused).
+ * @brief Signal handler for the server's bit-by-bit acknowledgment.
+ * @param sig Signal received (unused).
  *
- * This handler is crucial for synchronization. It sets a global flag,
- * signaling that the server has processed the last bit and the client
- * can safely send the next one.
+ * Crucial for synchronization. It sets a global flag, signaling that the server
+ * has processed the last bit and the client can safely send the next one.
  */
 void	ack_handler(int sig)
 {
@@ -67,13 +66,12 @@ void	ack_handler(int sig)
 
 /**
  * @brief Sends one byte to the server, waiting for an ack for each bit.
- * @param byte The byte to send.
- * @param pid The server's Process ID.
+ * @param byte	Byte to send.
+ * @param pid	Server's Process ID.
  *
- * This function implements a robust, synchronized protocol. It sends one
- * bit and then waits for the server's acknowledgment before proceeding.
- * It includes a timeout to prevent an infinite loop if the server stops
- * responding.
+ * Sends each bit via a signal and waits for a confirmation signal
+ * before sending the next one.
+ * Includes a timeout mechanism to detect server failure or loss of sync.
  */
 void	ft_send_byte(unsigned char byte, int pid)
 {
@@ -102,10 +100,16 @@ void	ft_send_byte(unsigned char byte, int pid)
 }
 
 /**
- * @brief The main function for the bonus client.
+ * @brief The main function for the bonus client program.
  *
- * Sets up two signal handlers: one for the bit-ack and one for the
- * final message-ack (bonus feature). Then sends the message.
+ * @param argc Argument count.
+ * @param argv Argument vector: expects [Server PID] [Message].
+ *
+ * Sets up signal handlers for bit-level and message-level acknowledgments.
+ * Sends each character in the message, followed by a null byte to signal 
+ * the end.
+ *
+ * @return 0 on success, 1 on incorrect usage.
  */
 int	main(int argc, char **argv)
 {
