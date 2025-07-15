@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/12 17:54:40 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 10:10:17 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 12:47:33 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void	sigusr_handler(int sig, siginfo_t *info, void *ucontext)
 	if (bit_num == 8)
 	{
 		if (byte == '\0')
-			printf("%c", ft_guarrada());
+			ft_printf("%c", ft_guarrada());
 		else
 			ft_printf("%c", byte);
 		byte = 0;
