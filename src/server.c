@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/12 17:54:40 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 21:52:31 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 22:58:22 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,14 +41,14 @@ static void	handle_completed_byte(void)
 }
 
 /**
- * @brief Main signal handler for the mandatory server.
- * @param sig The signal received.
- * @param info Struct containing the sender's PID.
- * @param ucontext Unused.
+ * @brief Handles incoming signals to build characters bit by bit.
  *
- * Reconstructs bytes bit-by-bit from incoming signals. It locks onto a
- * client's PID for the duration of a message to handle concurrent clients
- * gracefully. The acknowledgment order is critical to prevent deadlocks.
+ * @param sig      The received signal (bit 0 or bit 1).
+ * @param info     Struct containing the sender's PID.
+ * @param ucontext Not used.
+ *
+ * Reconstructs characters from signals, prints them when complete,
+ * and sends back confirmation to the client.
  */
 void	sig_handler(int sig, siginfo_t *info, void *ucontext)
 {
@@ -73,7 +73,13 @@ void	sig_handler(int sig, siginfo_t *info, void *ucontext)
 }
 
 /**
- * @brief Main function for the server program.
+ * @brief Entry point of the server program.
+ *
+ * Sets up the signal handlers and begins waiting for incoming signals.
+ * Prints the server's PID for client reference and enters an infinite
+ * loop using `pause()` to idle until signals are received.
+ *
+ * @return Always returns 0 on successful execution.
  */
 int	main(void)
 {
