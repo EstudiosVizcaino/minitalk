@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/12 17:54:40 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 21:16:18 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 23:03:39 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,8 @@ void	reset_state(void)
 /**
  * @brief Processes a fully received byte and resets the state for the next.
  *
- * This function is called once all 8 bits of a character have been
- * received. It prints the character and then clears the bit index and
- * character buffer to prepare for the next incoming byte.
+ * Called after receiving 8 bits. Prints the character and resets the 
+ * character buffer and bit index to prepare for the next incoming byte.
  */
 static void	handle_completed_byte(void)
 {
@@ -42,13 +41,14 @@ static void	handle_completed_byte(void)
 
 /**
  * @brief Main signal handler for the bonus server.
- * @param sig The signal received.
- * @param info Struct containing the sender's PID.
- * @param ucontext Unused.
+ * @param sig		Signal received (represents a bit).
+ * @param info 		Struct containing the sender's PID.
+ * @param ucontext	Unused.
  *
- * Does everything the mandatory server does, with one addition:
- * BONUS: When a message is fully received (ends with '\0'), it sends a
- * final `SIGUSR2` acknowledgment back to the client.
+ * Reconstructs characters from bits sent via signals. When a null byte
+ * (`'\0'`) is received, prints a newline, resets the state, and sends
+ * a final acknowledgment (`SIGNAL_ACK_MSG`) to the client.
+ * Also sends an acknowledgment for each bit (`SIGNAL_ACK_BIT`).
  */
 void	sig_handler(int sig, siginfo_t *info, void *ucontext)
 {
@@ -76,7 +76,13 @@ void	sig_handler(int sig, siginfo_t *info, void *ucontext)
 }
 
 /**
- * @brief Main function for the bonus server.
+ * @brief Entry point of the server program.
+ *
+ * Sets up the signal handlers and begins waiting for incoming signals.
+ * Prints the server's PID for client reference and enters an infinite
+ * loop using `pause()` to idle until signals are received.
+ *
+ * @return Always returns 0 on successful execution.
  */
 int	main(void)
 {
