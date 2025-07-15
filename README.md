@@ -4,8 +4,6 @@
 A simple, yet powerful, client-server communication system built using only UNIX signals. This project, a staple of the 42 School curriculum, demonstrates a fundamental understanding of inter-process communication in a Unix-like environment.
 ![alt text](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)
 
-![alt text](https://img.shields.io/github/issues/Ileriayo/markdown-badges?style=for-the-badge)
-
 ![alt text](https://img.shields.io/github/forks/Ileriayo/markdown-badges?style=for-the-badge)
 
 ![alt text](https://img.shields.io/github/stars/Ileriayo/markdown-badges?style=for-the-badge)
@@ -31,7 +29,7 @@ Make sure you have a C compiler (like gcc) and make installed on your system. Th
 Installation
 Clone the repo
 Generated sh
-git clone https://github.com/your_username/minitalk.git
+git clone https://github.com/estudiosvizcaino/minitalk.git
 content_copy
 download
 Use code with caution.
