@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:02 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 17:39:00 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 18:51:58 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,11 @@
 # include <stdlib.h>
 # include "../ft_printf/ft_printf.h"
 
-typedef struct s_client_state
+typedef struct s_server_state
 {
-	int						sig_counter;
-	volatile sig_atomic_t	ack_received;
-}	t_client_state;
-
-
+	unsigned char	current_char;
+	int				bit_index;
+	pid_t			client_pid;
+}	t_server_state;
 
 #endif
