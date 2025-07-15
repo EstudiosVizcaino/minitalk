@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/12 17:54:40 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 21:21:20 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 21:52:31 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	sig_handler(int sig, siginfo_t *info, void *ucontext)
 	if (g_state.client_pid == 0)
 		g_state.client_pid = info->si_pid;
 	else if (g_state.client_pid != info->si_pid)
-		return;
+		return ;
 	g_state.current_char = (g_state.current_char << 1) | (sig == SIGNAL_BIT_1);
 	g_state.bit_index++;
 	if (g_state.bit_index == BITS_IN_BYTE)
