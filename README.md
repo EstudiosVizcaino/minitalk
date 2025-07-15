@@ -1,117 +1,157 @@
-# 🚀 Minitalk
+# Minitalk
 
-![Minitalk Demo](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTd2bHh1bDB6Z2JzZ3A2bTU2eGJ6aHF6eDk2cW9xZ3k4bzZ6eG9pZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/L8K62iI8aU5a0/giphy.gif)
+![C](https://img.shields.io/badge/Language-C-blue.svg)![OS](https://img.shields.io/badge/OS-Linux%20%7C%20macOS-lightgrey.svg)!(https://img.shields.io/badge/42%20Project-Minitalk-black.svg)
 
-> A simple, yet powerful, client-server communication system built using only UNIX signals. This project, a staple of the 42 School curriculum, demonstrates a fundamental understanding of inter-process communication in a Unix-like environment.
+**Minitalk is a project from the 42 coding school that showcases a fundamental aspect of Unix programming: Inter-Process Communication (IPC). The challenge is to create a client-server program that communicates a string of text using only two custom signals: `SIGUSR1` and `SIGUSR2`.**
 
----
-
-## 🌟 About The Project
-
-Minitalk is an exercise in minimalist communication. The goal is to transmit a string of characters from a client process to a server process using only two signals: `SIGUSR1` and `SIGUSR2`. This project challenges developers to think about data representation, signal handling, and process management in a constrained but powerful way.
-
-The server starts up and proudly displays its Process ID (PID). The client then uses this PID to send a message, bit by bit, with each bit represented by a specific signal. The server listens for these signals, reconstructs the original message, and displays it to the user.
-
-### ✨ Key Features
-
-*   **Signal-based Communication:** Utilizes `SIGUSR1` and `SIGUSR2` for data transmission.
-*   **Client-Server Architecture:** A clear separation of concerns between the message sender and receiver.
-*   **PID for Addressing:** The server is identified by its unique Process ID.
-*   **Multi-Client Support (Bonus):** The server can handle messages from multiple clients consecutively.
-*   **Unicode and Emoji Support (Bonus):** Capable of transmitting a wide range of characters.
-*   **Acknowledgement System (Bonus):** The server can send a signal back to the client to confirm message reception.
+This project demonstrates how simple signals, traditionally used for basic process management, can be harnessed to transmit complex data, bit by bit.
 
 ---
 
-## 🛠️ Getting Started
+## 🚀 How it Works: The Core Concept
 
-To get a local copy up and running, follow these simple steps.
+The fundamental idea behind Minitalk is to represent data in its most basic form: binary. Since we have two distinct signals, `SIGUSR1` and `SIGUSR2`, we can assign a binary value to each:
 
-### Prerequisites
+*   `SIGUSR1` = **0**
+*   `SIGUSR2` = **1**
 
-Make sure you have a C compiler (like `gcc`) and `make` installed on your system. This project is designed for a Unix-like environment (Linux or macOS).
+By sending a sequence of these signals from a client process to a server process, we can transmit any character, and by extension, any string of text.
 
-### Installation
+### The Journey of a Character
 
-1.  Clone the repo
-    ```sh
-    git clone https://github.com/EstudiosVizcaino/minitalk.git
+1.  **Client-Side (Deconstruction):** The client takes a character (e.g., `'A'`).
+2.  The ASCII value of `'A'` is `65`. In binary, this is `01000001`.
+3.  The client sends a sequence of 8 signals to the server, one for each bit. For `'A'`, this sequence would be:
+    `SIGUSR1` (0) `SIGUSR2` (1) `SIGUSR1` (0) `SIGUSR1` (0) `SIGUSR1` (0) `SIGUSR1` (0) `SIGUSR1` (0) `SIGUSR2` (1)
+
+4.  **Server-Side (Reconstruction):** The server listens for these signals.
+5.  Upon receiving a signal, it reconstructs the bits back into a byte. It uses bit-shifting operations to place the incoming `0` or `1` into an `unsigned char` variable.
+6.  After 8 signals have been received, the server has a complete byte, which it can then print as a character.
+
+This process is repeated for every character in the message, followed by a null terminator (`\0`) to signify the end of the transmission.
+
+---
+
+## 🛠️ Implementation Details
+
+The project is divided into two main components: the `server` and the `client`. Both have a mandatory and a bonus version.
+
+### The Server
+
+The server's primary role is to listen for and interpret signals sent by the client.
+
+*   **PID Display**: Upon launch, the server immediately prints its Process ID (PID). This PID is essential, as it's the "address" the client needs to send signals to.
+    ```bash
+    $ ./server
+    PID: 12345
     ```
-2.  Navigate to the project directory
-    ```sh
-    cd minitalk
+*   **Signal Handling with `sigaction`**: The server uses the `sigaction` function to establish a sophisticated handler for `SIGUSR1` and `SIGUSR2`. Unlike the simpler `signal` function, `sigaction` allows us to get more information about the incoming signal, most importantly, the PID of the sender (the client). This is achieved by setting the `SA_SIGINFO` flag.
+
+*   **Reconstructing Bytes**: The handler uses `static` variables to preserve data across multiple signal calls. A `static unsigned char` is used to build the character bit by bit, and a `static int` counts the number of bits received.
+
+    ```c
+    // Server-side logic snippet
+    void sigusr_handler(int sig, siginfo_t *info, void *ucontext)
+    {
+        static unsigned char  byte;
+        static unsigned int   bit_num;
+
+        // ... identify client PID from info->si_pid ...
+
+        byte = byte << 1; // Shift the byte to the left to make room for the new bit
+        if (sig == SIGUSR2)
+            byte |= 1; // Set the last bit to 1 if the signal is SIGUSR2
+
+        bit_num++;
+        if (bit_num == 8)
+        {
+            // ... print the character and reset for the next byte ...
+        }
+    }
     ```
-3.  Compile the project
-    ```sh
+
+### The Client
+
+The client is responsible for taking a message and translating it into a series of signals directed at the server.
+
+*   **Sending Signals**: The client iterates through each character of the input string. For each character, it uses bitwise operations to check each of the 8 bits.
+*   **Bitwise Logic**: The `>>` (right shift) and `&` (bitwise AND) operators are used to isolate each bit of a character.
+
+    ```c
+    // Client-side logic snippet
+    void ft_send_byte(unsigned char byte, int pid)
+    {
+        int i = 8;
+        while (i--)
+        {
+            if ((byte >> i) & 1) // Check if the i-th bit is 1
+                kill(pid, SIGUSR2);
+            else
+                kill(pid, SIGUSR1);
+            // ... wait for server acknowledgment (in bonus version) ...
+        }
+    }
+    ```
+*   **Transmission End**: After sending all characters in the string, the client sends one final character: the null terminator (`\0`). This signals to the server that the message is complete.
+
+---
+
+## ✨ Bonus Features: A Robust Communication Protocol
+
+The bonus part of the project introduces a crucial feature: **server-to-client acknowledgment**.
+
+### The Problem of Speed
+
+Without any feedback mechanism, the client could send signals much faster than the server can process them. This can lead to signals being missed, resulting in corrupted data.
+
+### The Solution: Acknowledgment
+
+To solve this, the bonus server sends a signal back to the client (`SIGUSR2` in this implementation) after successfully receiving each bit.
+
+*   **Client Waits**: The bonus client, after sending a bit, pauses and waits for this acknowledgment signal. It only sends the next bit after the acknowledgment is received.
+*   **Synchronization**: This creates a synchronized, one-to-one exchange of signals, guaranteeing that no data is lost. The `volatile sig_atomic_t` type is used for the acknowledgment flag to ensure it behaves correctly within the signal handler context.
+
+The bonus client also counts the number of acknowledgment signals received and, at the end of the transmission, prints a confirmation message, verifying that the entire message was received by the server.
+
+```bash
+$ ./client_bonus 12345 "Hello, World!"
+Received 104 signals from server corresponding to 13 bytes.
+```
+This confirms that all 13 characters (including the null terminator) were successfully transmitted and acknowledged.
+
+---
+
+## 📋 How to Use
+
+1.  **Compile the project:**
+    ```bash
     make
+    ```    This will create the `server`, `client`, `server_bonus`, and `client_bonus` executables.
+
+2.  **Run the server:**
+    ```bash
+    ./server_bonus
+    # The server will print its PID
+    # PID: [SERVER_PID]
     ```
-    To compile the bonus version with extra features:
-    ```sh
-    make bonus
+
+3.  **In a new terminal, run the client:**
+    Replace `[SERVER_PID]` with the PID from the previous step and provide a message in quotes.
+    ```bash
+    ./client_bonus [SERVER_PID] "Your message here! This also supports 🐘 and other UTF-8 characters."
     ```
+
+4.  **Observe the Output:**
+    *   The server terminal will print your message character by character.
+    *   The client terminal will confirm the number of bytes successfully sent and acknowledged.
 
 ---
 
-## USAGE
+## 🧠 Key Concepts Learned
 
-Using Minitalk is straightforward.
-
-1.  **Start the server:**
-    In your terminal, run the server executable. It will print its PID.
-    ```sh
-    ./server
-    ```
-    You will see an output like:
-    ```
-    Server PID: 12345
-    ```
-
-2.  **Send a message from the client:**
-    In a separate terminal window, run the client executable, providing the server's PID and the message you want to send as arguments.
-    ```sh
-    ./client 12345 "Hello, Minitalk!"
-    ```
-    For a message with Unicode characters:
-    ```sh
-    ./client 12345 "Hello, world! 🌍👋"
-    ```
-
-The server terminal will then display the received message.
-
----
-
-## 💡 How It Works
-
-The magic of Minitalk lies in its use of signals to represent binary data.
-
-1.  **Client-Side:** The client takes the input string and iterates through each character. Each character is converted into its 8-bit binary representation. The client then sends a `SIGUSR1` signal for a '1' bit and a `SIGUSR2` signal for a '0' bit to the server's PID.
-
-2.  **Server-Side:** The server has signal handlers for `SIGUSR1` and `SIGUSR2`. When a signal is received, the handler reconstructs the bits into bytes. Once a full byte (8 bits) is received, it is converted back to a character and appended to the message string. After receiving a null terminator character, the server prints the complete message.
-
----
-
-## 🤝 Contributing
-
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
-
----
-
-## 📜 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-## 🙏 Acknowledgments
-
-*   [42 School](https://www.42.fr/) for the project idea.
-*   [Shields.io](https://shields.io/) for the cool badges.
-*   [Giphy](https://giphy.com/) for the awesome GIFs.
+*   **UNIX Signals**: Deep understanding of `SIGUSR1`, `SIGUSR2`, and the signal handling mechanism.
+*   **Inter-Process Communication (IPC)**: A practical, low-level implementation of IPC on Unix-like systems.
+*   **`sigaction`**: Using `sigaction` for reliable and informative signal handling, including retrieving the sender's PID.
+*   **Bit Manipulation**: Extensive use of bitwise operators (`<<`, `>>`, `&`, `|`) to encode and decode data.
+*   **Process Management**: Working with Process IDs (`PID`) and the `kill()` system call.
+*   **Synchronization**: Implementing a client-server acknowledgment system to prevent data loss.
