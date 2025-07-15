@@ -4,11 +4,6 @@
 
 > A simple, yet powerful, client-server communication system built using only UNIX signals. This project, a staple of the 42 School curriculum, demonstrates a fundamental understanding of inter-process communication in a Unix-like environment.
 
-[![Licence](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](./LICENSE)
-[![GitHub issues](https://img.shields.io/github/issues/Ileriayo/markdown-badges?style=for-the-badge)](https://github.com/Ileriayo/markdown-badges/issues)
-[![GitHub forks](https://img.shields.io/github/forks/Ileriayo/markdown-badges?style=for-the-badge)](https://github.com/Ileriayo/markdown-badges/network)
-[![GitHub stars](https://img.shields.io/github/stars/Ileriayo/markdown-badges?style=for-the-badge)](https://github.com/Ileriayo/markdown-badges/stargazers)
-
 ---
 
 ## 🌟 About The Project
