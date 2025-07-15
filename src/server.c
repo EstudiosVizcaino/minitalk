@@ -6,15 +6,11 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/12 17:54:40 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/14 19:25:27 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 12:47:22 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minitalk.h"
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 static volatile pid_t	g_client_pid = 0;
 
