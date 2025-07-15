@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:15 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 17:37:13 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 18:50:46 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,14 +38,12 @@ static int	ft_atoi(const char *str)
 	return (nbr * sign);
 }
 
-// Handler for the bit-by-bit acknowledgment from the server.
 void	bit_ack_handler(int sig)
 {
 	(void)sig;
 	g_ack_received = 1;
 }
 
-// Handler for the final message acknowledgment (BONUS feature).
 void	message_ack_handler(int sig)
 {
 	(void) sig;
@@ -53,26 +51,23 @@ void	message_ack_handler(int sig)
 	exit(0);
 }
 
-// Sends one byte, waiting for an acknowledgment for each bit.
 void	ft_send_byte(unsigned char byte, int pid)
 {
 	int	i;
+	int	timeout;
 
 	i = 8;
+	timeout = 0;
 	while (i--)
 	{
-		g_ack_received = 0; // Reset flag before sending.
+		g_ack_received = 0;
 		if ((byte >> i) & 1)
-			kill(pid, SIGUSR2); // Bit '1'
+			kill(pid, SIGUSR2);
 		else
-			kill(pid, SIGUSR1); // Bit '0'
-		
-		// Wait for the server to send back SIGUSR1, confirming receipt.
-		// A timeout is added to prevent infinite loops if the server dies.
-		int timeout = 0;
+			kill(pid, SIGUSR1);
 		while (!g_ack_received)
 		{
-			if (timeout++ > 1000) // Timeout after ~100ms
+			if (timeout++ > 1000)
 			{
 				ft_printf("Error: No response from server.\n");
 				exit(1);
