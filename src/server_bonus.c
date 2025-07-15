@@ -6,13 +6,19 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/12 17:54:40 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/14 19:29:10 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/15 10:10:17 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minitalk.h"
 
 static volatile pid_t	g_client_pid = 0;
+
+char	ft_guarrada(void)
+{
+	g_client_pid = 0;
+	return ('\n');
+}
 
 void	sigusr_handler(int sig, siginfo_t *info, void *ucontext)
 {
@@ -33,7 +39,7 @@ void	sigusr_handler(int sig, siginfo_t *info, void *ucontext)
 	if (bit_num == 8)
 	{
 		if (byte == '\0')
-			g_client_pid = 0;
+			printf("%c", ft_guarrada());
 		else
 			ft_printf("%c", byte);
 		byte = 0;
