@@ -1,63 +1,56 @@
-NAME_SERVER = server
-NAME_CLIENT = client
-NAME_SERVER_BONUS = server_bonus
-NAME_CLIENT_BONUS = client_bonus
+NAME_MANDATORY	= server client
+NAME_BONUS		= server_bonus client_bonus
 
-SRCS_SERVER = src/server.c
-SRCS_CLIENT = src/client.c
-SRCS_SERVER_BONUS = src/server_bonus.c
-SRCS_CLIENT_BONUS = src/client_bonus.c
+SRCS_MANDATORY	= src/server.c src/client.c
+SRCS_BONUS		= src/server_bonus.c src/client_bonus.c
 
-OBJS_SERVER = $(SRCS_SERVER:.c=.o)
-OBJS_CLIENT = $(SRCS_CLIENT:.c=.o)
-OBJS_SERVER_BONUS = $(SRCS_SERVER_BONUS:.c=.o)
-OBJS_CLIENT_BONUS = $(SRCS_CLIENT_BONUS:.c=.o)
+OBJS_MANDATORY	= $(SRCS_MANDATORY:.c=.o)
+OBJS_BONUS		= $(SRCS_BONUS:.c=.o)
 
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+CC				= gcc
 
-# Path to ft_printf directory
-FT_PRINTF_DIR = ./ft_printf
-FT_PRINTF = $(FT_PRINTF_DIR)/libftprintf.a
-INCLUDES = -I$(FT_PRINTF_DIR)
 
-# Default all targets (main + bonus)
-all: $(NAME_SERVER) $(NAME_CLIENT) $(NAME_SERVER_BONUS) $(NAME_CLIENT_BONUS)
+INCLUDES		= -I ./includes -I ./ft_printf
+CFLAGS			= -Wall -Wextra -Werror $(INCLUDES)
 
-# Main program targets (server and client)
-$(NAME_SERVER): $(OBJS_SERVER) $(FT_PRINTF)
-	$(CC) $(CFLAGS) -o $(NAME_SERVER) $(OBJS_SERVER) $(FT_PRINTF) $(INCLUDES)
+FT_PRINTF_DIR	= ./ft_printf
+FT_PRINTF		= $(FT_PRINTF_DIR)/libftprintf.a
 
-$(NAME_CLIENT): $(OBJS_CLIENT) $(FT_PRINTF)
-	$(CC) $(CFLAGS) -o $(NAME_CLIENT) $(OBJS_CLIENT) $(FT_PRINTF) $(INCLUDES)
 
-# Bonus program targets (server_bonus and client_bonus)
-$(NAME_SERVER_BONUS): $(OBJS_SERVER_BONUS) $(FT_PRINTF)
-	$(CC) $(CFLAGS) -o $(NAME_SERVER_BONUS) $(OBJS_SERVER_BONUS) $(FT_PRINTF) $(INCLUDES)
+all: $(NAME_MANDATORY)
 
-$(NAME_CLIENT_BONUS): $(OBJS_CLIENT_BONUS) $(FT_PRINTF)
-	$(CC) $(CFLAGS) -o $(NAME_CLIENT_BONUS) $(OBJS_CLIENT_BONUS) $(FT_PRINTF) $(INCLUDES)
+bonus: $(NAME_BONUS)
 
-# Rule to compile .c files to .o files
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+server: src/server.o $(FT_PRINTF)
+	$(CC) $(CFLAGS) -o $@ $^
 
-# ft_printf build rule
+client: src/client.o $(FT_PRINTF)
+	$(CC) $(CFLAGS) -o $@ $^
+
+server_bonus: src/server_bonus.o $(FT_PRINTF)
+	$(CC) $(CFLAGS) -o $@ $^
+
+client_bonus: src/client_bonus.o $(FT_PRINTF)
+	$(CC) $(CFLAGS) -o $@ $^
+
+
 $(FT_PRINTF):
 	@$(MAKE) -C $(FT_PRINTF_DIR)
 
-# Clean object files and temporary files
+src/%.o: src/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
 clean:
-	@rm -f $(OBJS_SERVER) $(OBJS_CLIENT) $(OBJS_SERVER_BONUS) $(OBJS_CLIENT_BONUS)
+	@rm -f $(OBJS_MANDATORY) $(OBJS_BONUS)
 	@$(MAKE) -C $(FT_PRINTF_DIR) clean
 
-# Clean up everything including binaries
 fclean: clean
-	@rm -f $(NAME_SERVER) $(NAME_CLIENT) $(NAME_SERVER_BONUS) $(NAME_CLIENT_BONUS)
+	@rm -f $(NAME_MANDATORY) $(NAME_BONUS)
 	@$(MAKE) -C $(FT_PRINTF_DIR) fclean
 
-# Rebuild everything
 re: fclean all
+re_bonus: fclean bonus
 
-.PHONY: all clean fclean re
 
+.PHONY: all bonus clean fclean re re_bonus
