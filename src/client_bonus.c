@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:15 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 23:20:05 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/16 17:29:09 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,27 +14,6 @@
 
 /// Global flag used to synchronize bit-by-bit communication with the server.
 static volatile sig_atomic_t	g_server_ack = 0;
-
-static int	ft_atoi(const char *str)
-{
-	int		sign;
-	long	nbr;
-
-	sign = 1;
-	nbr = 0;
-	while (*str == ' ' || (*str >= 9 && *str <= 13))
-		str++;
-	if (*str == '-')
-		sign = -1;
-	if (*str == '-' || *str == '+')
-		str++;
-	while (*str >= '0' && *str <= '9')
-	{
-		nbr = nbr * 10 + (*str - '0');
-		str++;
-	}
-	return ((int)(nbr * sign));
-}
 
 /**
  * @brief Signal handler for final message acknowledgment from the server.
@@ -100,12 +79,42 @@ void	ft_send_byte(unsigned char byte, int pid)
 }
 
 /**
+ * @brief Sets up the signal handlers for acknowledgments.
+ *
+ * This helper function configures and registers the two signal handlers
+ * required for the bonus client: one for the bit-by-bit ack (SIGUSR1)
+ * and one for the final message ack (SIGUSR2). It exits on failure.
+ */
+static void	setup_signal_handlers(void)
+{
+	struct sigaction	sa_bit_ack;
+	struct sigaction	sa_msg_ack;
+
+	sa_bit_ack.sa_handler = ack_handler;
+	sigemptyset(&sa_bit_ack.sa_mask);
+	sa_bit_ack.sa_flags = 0;
+	if (sigaction(SIGNAL_ACK_BIT, &sa_bit_ack, NULL) == -1)
+	{
+		ft_printf("Error: Failed to register bit-ack handler.\n");
+		exit(1);
+	}
+	sa_msg_ack.sa_handler = message_ack_handler;
+	sigemptyset(&sa_msg_ack.sa_mask);
+	sa_msg_ack.sa_flags = 0;
+	if (sigaction(SIGNAL_ACK_MSG, &sa_msg_ack, NULL) == -1)
+	{
+		ft_printf("Error: Failed to register message-ack handler.\n");
+		exit(1);
+	}
+}
+
+/**
  * @brief The main function for the bonus client program.
  *
  * @param argc Argument count.
  * @param argv Argument vector: expects [Server PID] [Message].
  *
- * Sets up signal handlers for bit-level and message-level acknowledgments.
+ * Delegates signal handler setup to a helper function. setup_signal_handlers()
  * Sends each character in the message, followed by a null byte to signal 
  * the end.
  *
@@ -115,19 +124,10 @@ int	main(int argc, char **argv)
 {
 	int					server_pid;
 	char				*message;
-	struct sigaction	sa_bit_ack;
-	struct sigaction	sa_msg_ack;
 
 	if (argc != 3)
 		return (ft_printf("Usage: ./client_bonus [Server PID] [Message]\n"), 1);
-	sa_bit_ack.sa_handler = ack_handler;
-	sigemptyset(&sa_bit_ack.sa_mask);
-	sa_bit_ack.sa_flags = 0;
-	sigaction(SIGNAL_ACK_BIT, &sa_bit_ack, NULL);
-	sa_msg_ack.sa_handler = message_ack_handler;
-	sigemptyset(&sa_msg_ack.sa_mask);
-	sa_msg_ack.sa_flags = 0;
-	sigaction(SIGNAL_ACK_MSG, &sa_msg_ack, NULL);
+	setup_signal_handlers();
 	server_pid = ft_atoi(argv[1]);
 	message = argv[2];
 	while (*message)
