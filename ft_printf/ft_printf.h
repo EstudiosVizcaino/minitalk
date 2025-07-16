@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/27 16:38:48 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/13 01:50:16 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/16 16:57:53 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,5 +23,6 @@ void	ft_putstr(char *s, int *charcount);
 int		ft_strlen(char *s);
 void	ft_putnbr(int nb, int *charcount);
 void	ft_putnbr_hexa(unsigned int nbr, char base, int *charcount);
+int		ft_atoi(const char *str);
 
 #endif

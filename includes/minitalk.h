@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:02 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/16 16:20:31 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/16 16:57:38 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,5 @@ typedef struct s_server_state
 	int				bit_index;
 	pid_t			client_pid;
 }	t_server_state;
-
-int	ft_atoi(const char *str);
 
 #endif
