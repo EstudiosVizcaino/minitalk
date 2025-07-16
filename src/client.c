@@ -6,7 +6,7 @@
 /*   By: cvizcain <cvizcain@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/13 01:29:20 by cvizcain          #+#    #+#             */
-/*   Updated: 2025/07/15 23:09:09 by cvizcain         ###   ########.fr       */
+/*   Updated: 2025/07/16 16:21:05 by cvizcain         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 /// Global flag set by the server to acknowledge reception of each bit.
 static volatile sig_atomic_t	g_server_ack = 1;
 
-static int	ft_atoi(const char *str)
+int	ft_atoi(const char *str)
 {
 	int		sign;
 	long	nbr;
@@ -97,12 +97,20 @@ void	ft_send_byte(unsigned char byte, int pid)
  */
 int	main(int argc, char **argv)
 {
-	int		server_pid;
-	char	*message;
+	int					server_pid;
+	char				*message;
+	struct sigaction	sa_ack;
 
 	if (argc != 3)
 		return (ft_printf("Usage: ./client [Server PID] [Message]\n"), 1);
-	signal(SIGNAL_ACK_BIT, ack_handler);
+	sa_ack.sa_handler = ack_handler;
+	sigemptyset(&sa_ack.sa_mask);
+	sa_ack.sa_flags = 0;
+	if (sigaction(SIGNAL_ACK_BIT, &sa_ack, NULL) == -1)
+	{
+		ft_printf("Error: Failed to register signal handler.\n");
+		exit(1);
+	}
 	server_pid = ft_atoi(argv[1]);
 	message = argv[2];
 	while (*message)
